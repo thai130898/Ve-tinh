@@ -38,10 +38,15 @@
             text-align: left;
         }
         th {
-            background-color: #f3f4f6;
             position: sticky;
             top: 0;
             z-index: 10;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: #4b5563;
         }
         /* Modal styles */
         .modal-overlay {
@@ -65,12 +70,6 @@
             max-height: 90%;
             overflow-y: auto;
             position: relative;
-        }
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 1rem;
-            color: #4b5563;
         }
     </style>
 </head>
@@ -139,7 +138,6 @@
                 const noDataCell = document.createElement('td');
                 noDataCell.textContent = "Không có dữ liệu.";
                 noDataCell.colSpan = 7;
-                noDataCell.classList.add('text-center', 'py-4', 'text-gray-500');
                 noDataRow.appendChild(noDataCell);
                 tableBody.appendChild(noDataRow);
             } else {
@@ -181,11 +179,24 @@
 
         const handleSearch = () => {
             const searchTerm = searchInput.value.toLowerCase();
-            filteredData = allData.filter(row => {
-                return Object.values(row).some(value => {
-                    return String(value).toLowerCase().includes(searchTerm);
+            // Split the search query by commas, trim whitespace, and filter out empty terms.
+            const searchTerms = searchTerm.split(',').map(term => term.trim()).filter(term => term.length > 0);
+            
+            if (searchTerms.length > 0) {
+                // Filter the data. The row must contain ALL of the search terms.
+                filteredData = allData.filter(row => {
+                    return searchTerms.every(term => {
+                        // Check if any value in the current row includes the search term.
+                        return Object.values(row).some(value => {
+                            return String(value).toLowerCase().includes(term);
+                        });
+                    });
                 });
-            });
+            } else {
+                // If no search terms, show all data.
+                filteredData = allData;
+            }
+
             currentPage = 0;
             renderTable();
         };
